@@ -26,13 +26,13 @@ module ActiveRecord::Import #:nodoc:
 end
 
 class ActiveRecord::Associations::CollectionProxy
-  def import(*args, &block)
-    @association.import(*args, &block)
+  def active_import(*args, &block)
+    @association.active_import(*args, &block)
   end
 end
 
 class ActiveRecord::Associations::CollectionAssociation
-  def import(*args, &block)
+  def active_import(*args, &block)
     unless owner.persisted?
       raise ActiveRecord::RecordNotSaved, "You cannot call import unless the parent is saved"
     end
@@ -64,7 +64,7 @@ class ActiveRecord::Associations::CollectionAssociation
         m.send "#{symbolized_foreign_key}=", owner_primary_key_value
       end
 
-      return model_klass.import column_names, models, options
+      return model_klass.active_import column_names, models, options
 
     # supports empty array
     elsif args.last.is_a?( Array ) and args.last.empty?
@@ -83,7 +83,7 @@ class ActiveRecord::Associations::CollectionAssociation
         array_of_attributes.each { |attrs| attrs[index] = owner_primary_key_value }
       end
 
-      return model_klass.import column_names, array_of_attributes, options
+      return model_klass.active_import column_names, array_of_attributes, options
     else
       raise ArgumentError.new( "Invalid arguments!" )
     end
@@ -237,7 +237,7 @@ class ActiveRecord::Base
     # * failed_instances - an array of objects that fails validation and were not committed to the database. An empty array if no validation is performed.
     # * num_inserts - the number of insert statements it took to import the data
     # * ids - the priamry keys of the imported ids, if the adpater supports it, otherwise and empty array.
-    def import(*args)
+    def active_import(*args)
       if args.first.is_a?( Array ) and args.first.first.is_a? ActiveRecord::Base
         options = {}
         options.merge!( args.pop ) if args.last.is_a?(Hash)
@@ -434,7 +434,7 @@ class ActiveRecord::Base
 
       associated_objects_by_class.each_pair do |class_name, associations|
         associations.each_pair do |association_name, associated_records|
-          associated_records.first.class.import(associated_records, options) unless associated_records.empty?
+          associated_records.first.class.active_import(associated_records, options) unless associated_records.empty?
         end
       end
     end
